@@ -1,42 +1,45 @@
 class TeacherService:
-    def __init__(self, data):
-        self.data = data
 
-    def list_teachers(self):
-        return self.data.teachers
+    # La "base de données" en mémoire
+    teachers = [
+        {"id": 1, "name": "Dr. Dieng",       "email": "dieng@edu.com",      "speciality": "Algèbre"},
+        {"id": 2, "name": "Prof. Coulibaly",  "email": "coulibaly@edu.com",  "speciality": "Intelligence Artificielle"},
+        {"id": 3, "name": "Dr. Sylla",        "email": "sylla@edu.com",      "speciality": "Chimie"},
+    ]
 
-    def get_teacher(self, teacher_id):
-        for teacher in self.data.teachers:
-            if teacher['id'] == teacher_id:
+    next_id = 4
+
+    def listTeachers(self) -> list:
+        return self.teachers
+    
+    def getTeacherById(self, teacher_id: int) -> dict | None:
+        for teacher in self.teachers:
+            if teacher["id"] == teacher_id:
                 return teacher
         return None
 
-    def add_teacher(self, name, email, speciality):
+    def addTeacher(self, name: str, email: str, speciality: str) -> bool:
+        if not name or not email or not speciality:
+            return False
+        
+        for teacher in self.teachers:
+            if teacher["email"] == email:
+                return False
+
         new_teacher = {
-            "id": self.data.next_teacher_id,
-            "name": name,
-            "email": email,
+            "id":         self.next_id,
+            "name":       name,
+            "email":      email,
             "speciality": speciality
         }
-        self.data.teachers.append(new_teacher)
-        self.data.next_teacher_id += 1
-        return new_teacher
 
-    def update_teacher(self, teacher_id, name=None, email=None, speciality=None):
-        teacher = self.get_teacher(teacher_id)
-        if teacher is None:
-            return False
-        if name:
-            teacher['name'] = name
-        if email:
-            teacher['email'] = email
-        if speciality:
-            teacher['speciality'] = speciality
+        self.teachers.append(new_teacher)
+        self.next_id += 1
         return True
 
-    def delete_teacher(self, teacher_id):
-        for teacher in self.data.teachers:
-            if teacher['id'] == teacher_id:
-                self.data.teachers.remove(teacher)
+    def deleteTeacher(self, teacher_id: int) -> bool:
+        for teacher in self.teachers:
+            if teacher["id"] == teacher_id:
+                self.teachers.remove(teacher)
                 return True
         return False

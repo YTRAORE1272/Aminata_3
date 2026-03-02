@@ -1,52 +1,39 @@
-from flask import Blueprint, render_template, request, redirect, url_for
-from app.data.Data import Data
+from flask import render_template, request, redirect, url_for, flash
+from app.teachers import teachers_bp
 from app.services.teacher_service import TeacherService
 
-# --- Création du "Blueprint" ---
-
-teachers_bp = Blueprint('teachers', __name__, url_prefix='/teachers')
-
-service = TeacherService(Data)
-
-
-
+service = TeacherService()
 
 @teachers_bp.route('/')
 def index():
-    return "Teachers Index Page"
+    teachers = service.listTeachers()
+    return render_template('teachers/index.html', teachers=teachers)
 
-
-@teachers_bp.route('/liste')
-def liste():
-    
-    teachers = service.list_teachers()
-
-    return render_template('base.html', teachers=teachers)
-
-
-# --- AJOUTER un professeur ---
-
-@teachers_bp.route('/add', methods=['GET', 'POST'])
-
-def add():
-    
+@teachers_bp.route('/create', methods=['GET', 'POST'])
+def create():
     if request.method == 'POST':
-  
-        name      = request.form.get('name')   
-        email     = request.form.get('email')       
-        speciality = request.form.get('speciality') 
+        name       = request.form.get('name')
+        email      = request.form.get('email')
+        speciality = request.form.get('speciality')
 
-        service.add_teacher(name, email, speciality)
+        success = service.addTeacher(name, email, speciality)
 
-        return redirect(url_for('teachers.liste'))
+        if success:
+            flash("Enseignant ajouté avec succès !", "success")
+        else:
+            flash("Erreur : champs manquants ou email déjà utilisé.", "danger")
 
-    return render_template('add_teacher.html')
+        return redirect(url_for('teachers.index'))
 
+    return render_template('teachers/index.html', teachers=service.listTeachers())
 
-# --- SUPPRIMER un professeur ---
-
-@teachers_bp.route('/delete/<int:teacher_id>')
+@teachers_bp.route('/delete/<int:teacher_id>', methods=['POST'])
 def delete(teacher_id):
-    service.delete_teacher(teacher_id)
+    success = service.deleteTeacher(teacher_id)
 
-    return redirect(url_for('teachers.liste'))
+    if success:
+        flash("Enseignant supprimé.", "success")
+    else:
+        flash("Erreur : enseignant introuvable.", "danger")
+
+    return redirect(url_for('teachers.index'))
